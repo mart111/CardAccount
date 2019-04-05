@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
+import com.example.demo.repository.RoleRepo;
 import com.example.demo.repository.UserRepo;
 import com.example.demo.security.provider.JwtTokenProvider;
 import com.example.demo.service.UserService;
@@ -25,12 +26,15 @@ public class UserServiceImpl implements UserService {
 
     private final JwtTokenProvider tokenProvider;
 
+    private final RoleRepo roleRepo;
+
     @Autowired
-    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, UserRepo repo, JwtTokenProvider tokenProvider) {
+    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, UserRepo repo, JwtTokenProvider tokenProvider, RoleRepo roleRepo) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.repo = repo;
         this.tokenProvider = tokenProvider;
+        this.roleRepo = roleRepo;
     }
 
     public String login(String username, String password) {
@@ -46,7 +50,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public String signUp(User user) {
         try {
-            user.setRole(new Role("USER"));
+            Role role = new Role("USER");
+            roleRepo.save(role);
+            user.setRole(role);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             repo.save(user);
             return "SAVED";
